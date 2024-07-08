@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ru">
+{% load static %}
+<head>
+    <meta charset="UTF-8">
+    <title>Регистрация</title>
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+</head>
+<body class="registration">
+    <div class="wrapper">
+        <h1>Выберите тип пользователя</h1>
+        <div class="role-selection">
+            <button id="admin-btn" class="role-btn">Я администратор</button>
+            <button id="client-btn" class="role-btn">Я пользователь</button>
+        </div>
+        <div class="input-box">
+            <div id="admin-form" class="form-container" style="display: none;">
+                <h2>Регистрация администратора</h2>
+                <form method="post" id="admin-registration-form">
+                    {% csrf_token %}
+                    {{ admin_form.as_p }}
+                    <input type="hidden" name="admin" value="true">
+                    <button type="submit" class="btn">Регистрация</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="input-box">
+            <div id="client-form" class="form-container" style="display: none;">
+                <h2>Регистрация пользователя</h2>
+                <form method="post" id="client-registration-form">
+                    {% csrf_token %}
+                    {{ client_form.as_p }}
+                    <input type="hidden" name="user" value="true">
+                    <button type="submit" class="btn">Регистрация</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const adminBtn = document.getElementById("admin-btn");
+        const clientBtn = document.getElementById("client-btn");
+        const adminForm = document.getElementById("admin-form");
+        const clientForm = document.getElementById("client-form");
+
+        adminBtn.addEventListener("click", function() {
+            adminForm.style.display = "block";
+            clientForm.style.display = "none";
+        });
+
+        clientBtn.addEventListener("click", function() {
+            adminForm.style.display = "none";
+            clientForm.style.display = "block";
+        });
+    });
+    </script>
+</body>
+</html>

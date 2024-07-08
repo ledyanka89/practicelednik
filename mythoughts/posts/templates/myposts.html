@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load static %}
+<head>
+    <meta charset="UTF-8">
+    <title>MyThoughts</title>
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <div class="left-links">
+                <a href="{% url 'blog:blog_list' %}">Список блогов</a>
+                <a href="{% url 'post:posts_list' %}">Посты блога</a>
+            </div>
+            <div class="site-title">
+                <a href="{% url 'main:index' %}"><h1>MyThoughts</h1></a>
+            </div>
+            <div class="right-links">
+                <a href="{% url 'post:my_posts' %}">Мои посты</a>
+                <a href="{% url 'blog:my_subscriptions' %}">Мои подписки</a>
+                {% if request.user.is_authenticated %}
+                    <a href="{% url 'users:logout' %}"><button class="primary-btn">ВЫЙТИ</button></a>
+                {% else %}
+                    <a href="{% url 'users:login' %}"><button class="primary-btn">ВОЙТИ</button></a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="content">
+        <h2>Мои посты</h2>
+        {% for post in posts %}
+            <div class="post">
+                <h3>{{ post.title }}</h3>
+                <p>Блог: <a href="{% url 'blog:blog_detail' post.blog.id %}">{{ post.blog.title }}</a></p>
+                <p>Лайки: {{ post.likes }} | Просмотры: {{ post.views }}</p>
+                {% if is_admin %}
+                    <a href="{% url 'edit_post' post.id %}" class="primary-btn">Редактировать пост</a>
+                    <a href="{% url 'delete_post' post.id %}" class="primary-btn">Удалить пост</a>
+                {% endif %}
+            </div>
+        {% endfor %}
+
+        <h2>Создать новый пост</h2>
+        <form method="post" action="{% url 'post:create_post' %}">
+            {% csrf_token %}
+            <label for="blog">Выберите блог:</label>
+            <select name="blog" id="blog">
+                {% for blog in owned_blogs %}
+                    <option value="{{ blog.id }}">{{ blog.title }}</option>
+                {% endfor %}
+                {% for blog in authored_blogs %}
+                    <option value="{{ blog.id }}">{{ blog.title }}</option>
+                {% endfor %}
+            </select>
+            <label for="post-title">Заголовок поста:</label>
+            <input type="text" name="title" id="post-title" required>
+            <label for="body">Содержание поста:</label>
+            <textarea name="body" id="body" required></textarea>
+            <button type="submit" class="primary-btn">Создать новый пост</button>
+        </form>
+
+        <h2>Мои блоги</h2>
+        <ul>
+            {% for blog in owned_blogs %}
+                <li>{{ blog.title }} - Владелец
+                    <ul>
+                        {% for author in blog.authors.all %}
+                            <li>{{ author.username }}</li>
+                        {% endfor %}
+                    </ul>
+                    <form method="post" class="add-author-form">
+                        {% csrf_token %}
+                        <input type="hidden" name="blog_id" value="{{ blog.id }}">
+                        <input type="text" name="username" placeholder="Введите имя пользователя" required>
+                        <button type="submit" name="add_author" class="primary-btn">Добавить автора</button>
+                    </form>
+                </li>
+            {% endfor %}
+            {% for blog in authored_blogs %}
+                <li>{{ blog.title }} - Автор
+                    <ul>
+                        {% for author in blog.authors.all %}
+                            <li>{{ author.username }}</li>
+                        {% endfor %}
+                    </ul>
+                </li>
+            {% endfor %}
+        </ul>
+
+        <h2>Создать новый блог</h2>
+        <form method="post" action="{% url 'post:create_blog' %}">
+            {% csrf_token %}
+            <label for="blog-title">Название блога:</label>
+            <input type="text" name="title" id="blog-title" required>
+            <label for="description">Описание блога:</label>
+            <textarea name="description" id="description" required></textarea>
+            <button type="submit" class="primary-btn">Создать новый блог</button>
+        </form>
+    </div>
+
+    <div class="footer">
+        <div class="container">
+            <p>&copy; 2024 MyThoughts</p>
+        </div>
+    </div>
+</body>
+</html>

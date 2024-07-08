@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load static %}
+<head>
+    <meta charset="UTF-8">
+    <title>MyThoughts</title>
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+    <script>
+        function likePost(postId) {
+            fetch(`/like/${postId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.likes !== undefined) {
+                        document.getElementById(`likes-${postId}`).innerText = data.likes;
+                    } else {
+                        alert(data.message);
+                    }
+                });
+        }
+
+        function viewPost(postId) {
+            fetch(`/view/${postId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById(`views-${postId}`).innerText = data.views;
+                });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.post').forEach(post => {
+                const postId = post.dataset.postId;
+                viewPost(postId);
+            });
+        });
+    </script>
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <div class="left-links">
+                <a href="{% url 'blog:blog_list' %}">Список блогов</a>
+                <a href="{% url 'post:posts_list' %}">Посты блога</a>
+            </div>
+            <div class="site-title">
+                <a href="{% url 'main:index' %}"><h1>MyThoughts</h1></a>
+            </div>
+            <div class="right-links">
+                <a href="{% url 'post:my_posts' %}">Мои посты</a>
+                <a href="{% url 'blog:my_subscriptions' %}">Мои подписки</a>
+                {% if request.user.is_authenticated %}
+                    <a href="{% url 'users:logout' %}"><button class="primary-btn">ВЫЙТИ</button></a>
+                {% else %}
+                    <a href="{% url 'users:login' %}"><button class="primary-btn">ВОЙТИ</button></a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="content">
+        <h2>Посты блога</h2>
+        <form method="get" action="{% url 'post:posts_list' %}">
+            <input type="text" name="q" value="{{ query }}" placeholder="Поиск по названию или автору...">
+            <label for="date_from">От:</label>
+            <input type="date" name="date_from" value="{{ date_from }}">
+            <label for="date_to">До:</label>
+            <input type="date" name="date_to" value="{{ date_to }}">
+            <button type="submit" class="primary-btn">Поиск</button>
+        </form>
+        <div class="sorting">
+            <a href="?{% if query %}q={{ query }}&{% endif %}sort_by=title&order=asc">Название (А-Я)</a> |
+            <a href="?{% if query %}q={{ query }}&{% endif %}sort_by=title&order=desc">Название (Я-А)</a> |
+            <a href="?{% if query %}q={{ query }}&{% endif %}sort_by=created_at&order=asc">Дата (по возрастанию)</a> |
+            <a href="?{% if query %}q={{ query }}&{% endif %}sort_by=created_at&order=desc">Дата (по убыванию)</a> |
+            <a href="?{% if query %}q={{ query }}&{% endif %}sort_by=likes&order=asc">Лайки (по возрастанию)</a> |
+            <a href="?{% if query %}q={{ query }}&{% endif %}sort_by=likes&order=desc">Лайки (по убыванию)</a>
+        </div>
+        {% for post in posts %}
+            <div class="post" data-post-id="{{ post.id }}">
+                <h3><a href="{% url 'post:post_detail' post.id %}">{{ post.title }}</a></h3>
+                <p>Автор: {{ post.author.username }}</p>
+                <p>Блог: <a href="{% url 'blog:blog_detail' post.blog.id %}">{{ post.blog.title }}</a></p>
+                <p>Лайки: <span id="likes-{{ post.id }}">{{ post.likes }}</span></p>
+                <p>Просмотры: <span id="views-{{ post.id }}">{{ post.views }}</span></p>
+                <button onclick="likePost({{ post.id }})" class="primary-btn">Лайк</button>
+
+                <h3>Комментарии</h3>
+                <ul>
+                    {% for comment in post.comments.all %}
+                        <li>{{ comment.body }} - {{ comment.author.username }}</li>
+                    {% endfor %}
+                </ul>
+
+                <form method="post" action="{% url 'post:post_detail' post.id %}">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <button type="submit" class="primary-btn">Добавить комментарий</button>
+                </form>
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="footer">
+        <div class="container">
+            <p>&copy; 2024 MyThoughts</p>
+        </div>
+    </div>
+</body>
+</html>

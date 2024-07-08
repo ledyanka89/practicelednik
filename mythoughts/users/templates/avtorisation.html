@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load static %}
+<head>
+    <meta charset="UTF-8">
+    <title>Вход</title>
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+    <style>
+        .input-box input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body class="avtorisation">
+    <div class="wrapper">
+        <form method="post" action="">
+            {% csrf_token %}
+            <h1>Логин</h1>
+
+            <div class="input-box">
+                {{ form.username }}
+            </div>
+
+            <div class="input-box">
+                {{ form.password }}
+            </div>
+
+            <button type="submit" class="btn">Войти</button>
+            <div class="register-link">
+                <p>У вас нет аккаунта? <a href="{% url 'users:registration' %}">Регистрация</a></p>
+            </div>
+        </form>
+    </div>
+</body>
+</html>
